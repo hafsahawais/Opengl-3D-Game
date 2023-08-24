@@ -1,12 +1,16 @@
 package shaders;
 
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector3f;
 
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 
 //generic class for all the shader programs
 public abstract class ShaderProgram {
@@ -15,6 +19,8 @@ public abstract class ShaderProgram {
     private final int vertexShaderId;
     private final int fragmentShaderId;
 
+    private static FloatBuffer matrixBuffer = BufferUtils.createFloatBuffer(16);
+
     public ShaderProgram(String vertexFile, String FragmentFile) {
         vertexShaderId = loadShader(vertexFile, GL20.GL_VERTEX_SHADER);
         fragmentShaderId = loadShader(FragmentFile, GL20.GL_FRAGMENT_SHADER);
@@ -22,12 +28,20 @@ public abstract class ShaderProgram {
         GL20.glAttachShader(programId, vertexShaderId);
         GL20.glAttachShader(programId, fragmentShaderId);
         bindAttributes();
+
         GL20.glLinkProgram(programId);
         GL20.glValidateProgram(programId);
+        getAllUniformLocations();
 
     }
 
     protected abstract void bindAttributes();
+
+    protected abstract void getAllUniformLocations();
+
+    protected int getUniformLocation(String uniformName) {
+        return GL20.glGetUniformLocation(programId, uniformName);
+    }
 
     public void start() {
         GL20.glUseProgram(programId);
@@ -45,6 +59,31 @@ public abstract class ShaderProgram {
         GL20.glDeleteShader(fragmentShaderId);
         GL20.glDeleteProgram(programId);
     }
+
+//    upload uniform variables in shader code
+
+    protected void loadVector(int location, Vector3f vector) {
+        GL20.glUniform3f(location, vector.x,vector.y,vector.z);
+    }
+
+    protected void loadFloat(int location, float value) {
+        GL20.glUniform1f(location, value);
+    }
+
+    protected void loadBoolean(int location , boolean value) {
+        float toLoad = 0;
+        if(value) {
+            toLoad = 1;
+        }
+        GL20.glUniform1f(location, toLoad);
+    }
+
+    protected  void loadMatrix(int location, Matrix4f matrix) {
+        matrix.store(matrixBuffer);
+        matrixBuffer.flip();
+        GL20.glUniformMatrix4(location, false, matrixBuffer);
+    }
+    //
 
     protected void bindAttribute(int attribute, String variableName) {
         GL20.glBindAttribLocation(programId, attribute, variableName);
