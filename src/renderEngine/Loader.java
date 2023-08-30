@@ -28,12 +28,13 @@ public class Loader {
     //    Take positions of the model vertices
 //    Load data into a Vao
 //    return information about a vao as a raw model object
-    public RawModel loadToVao(float[] positions, float[] texturedCoords, int[] indices) {
+    public RawModel loadToVao(float[] positions, float[] texturedCoords, float[] normals, int[] indices) {
        int vaoId = createVAO();
        vaos.add(vaoId);
        bindIndicesBuffer(indices);
        storeDataInAttributeList(0, 3, positions);
-        storeDataInAttributeList(1, 2, texturedCoords);
+       storeDataInAttributeList(1, 2, texturedCoords);
+        storeDataInAttributeList(2, 3, normals);
        unbindVao();
 //      each vertex has 3 floats x,y,z
        return new RawModel(vaoId,indices.length);
